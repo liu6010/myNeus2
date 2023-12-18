@@ -1,6 +1,6 @@
 #!/bin/bash
 source /home/fhy/anaconda3/etc/profile.d/conda.sh
-data_path="./data/person_ue4"
+data_path="./data/person1"
 param_path=$data_path/xml/
 texture_path=$data_path/texture/
 rgba_path=$data_path/rgba
@@ -8,7 +8,7 @@ neus2_mesh_name=neus2_mesh_depth00_1106.ply
 # render_dir=gaussian_render1107
 render_dir=gaussian_render_1108
 
-out_name=person_ue4
+out_name=person1
 
 image_num=39
 width=2160
@@ -16,15 +16,15 @@ height=3840
 RootPath=/home/fhy/workspace/lhw/NeuS2/
 conda activate neus2
 
-n_steps=20000
-date=1215
+n_steps=200000
+date=1216
 case $1 in
     "0"):
         cd $RootPath
         python ./scripts/mask2rgba.py \
-            --color_path /home/lhw/Gradute/3Dphoto/scan_obj_e2/data/neus2Data/color/ \
-            --mask_path /home/lhw/Gradute/3Dphoto/scan_obj_e2/data/neus2Data/mask \
-            --output_path /home/lhw/Gradute/3Dphoto/scan_obj_e2/data/neus2Data/rgba/
+            --color_path $data_path/color/ \
+            --mask_path $data_path/mask \
+            --output_path $data_path/rgba/
     ;;
     "1-0"):
         python ./scripts/neus2_render_path.py \
@@ -36,10 +36,10 @@ case $1 in
         python ../../scripts/xml2nerf_multi_stereo.py \
             --images rgba/%04d.png \
             --xml_in xml/%04d.xml \
-            --depths depth/%04d.png \
+            --depths depth_tsdf/%04d.png \
             --n $image_num \
             --aabb_scale 2 \
-            --scale 0.22 \
+            --scale 0.3 \
             --use_depth True \
             --w $width \
             --h $height \
@@ -50,10 +50,10 @@ case $1 in
         python ../../scripts/xml2nerf_multi.py \
             --images rgba/%04d.png \
             --xml_in xml_ue4/%04d.xml \
-            --depths depth/%04d.png \
+            --depths depth_tsdf/%04d.png \
             --n $image_num \
             --aabb_scale 2 \
-            --scale 0.22 \
+            --scale 0.3 \
             --use_depth True \
             --w $width \
             --h $height \
@@ -141,34 +141,13 @@ case $1 in
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")
-        mkdir -p $data_path/expirement/$date
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name $out_name --save_mesh \
-        #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        #     --marching_cubes_res 800 \
-        #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack
-
-        out_name=${out_name}_0.8
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name ${out_name}_0.8 \
-        #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack \
-        #     --depth_supervision_lambda 0.8
-
+        out_name_new=${out_name}_false
+        echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
-            --name $out_name --save_mesh \
-            --load_snapshot $RootPath/$data_path/output/$out_name/checkpoints/$n_steps.msgpack \
-            --save_mesh_path $RootPath/$data_path/output/$out_name/mesh/neus2_raw.ply \
-            --marching_cubes_res 800 
-
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name $out_name --save_mesh \
-        #     --load_snapshot $RootPath/$data_path/output/$out_name/checkpoints/$n_steps.msgpack \
-        #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        #     --marching_cubes_res 800 
+            --name ${out_name_new} \
+            --n_steps $n_steps \
+            --marching_cubes_res 800
     ;;
     "sh")
         for i in $(seq 0.2 0.2 1)
@@ -179,6 +158,7 @@ case $1 in
                 --scene $data_path/transforms.json \
                 --name ${out_name_new} \
                 --n_steps $n_steps \
+                --marching_cubes_res 800 \
                 --depth_supervision_lambda $i
         done
 

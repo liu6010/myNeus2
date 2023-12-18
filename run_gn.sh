@@ -13,9 +13,9 @@ width=2160
 height=3840
 RootPath=/home/fhy/workspace/lhw/NeuS2/
 conda activate neus2
-
-n_steps=20000
-date=1214
+out_name=person_gn
+n_steps=150000
+date=1217
 case $1 in
     "0"):
         cd $RootPath
@@ -124,21 +124,30 @@ case $1 in
     "2-0"):
         ./build/testbed --scene $data_path/transforms.json
     ;;
-    "2-1"):
-
-        mkdir -p $data_path/expirement/$date
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name person_gn --save_mesh \
-        #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        #     --marching_cubes_res 700 \
-        #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack
+    "2-1")
+        out_name_new=${out_name}_false
+        echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
-            --name person_gn --save_mesh \
-            --load_snapshot $RootPath/$data_path/output/person_gn/checkpoints/$n_steps.msgpack \
-            --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-            --marching_cubes_res 700
+            --name ${out_name_new} \
+            --n_steps $n_steps \
+            --marching_cubes_res 800
+    ;;
+    "sh")
+        for i in $(seq 0.0 0.2 1)
+        do
+            out_name_new=${out_name}_$i
+            echo $out_name_new
+            python ./scripts/run_ModelMesh.py \
+                --scene $data_path/transforms.json \
+                --name ${out_name_new} \
+                --n_steps $n_steps \
+                --marching_cubes_res 800 \
+                --depth_supervision_lambda $i
+        done
+
+        
+
     ;;
 
 esac

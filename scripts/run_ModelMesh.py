@@ -49,6 +49,9 @@ def parse_args():
 	parser.add_argument("--screenshot_dir", default="", help="Which directory to output screenshots to.")
 	parser.add_argument("--screenshot_spp", type=int, default=8, help="Number of samples per pixel in screenshots.")
 
+	parser.add_argument("--optimize_exposure", action="store_true")
+	parser.add_argument("--optimize_extrinsics", action="store_true")
+	
 	parser.add_argument("--save_mesh", action="store_true")
 	parser.add_argument("--save_mesh_path", default="", help="Output a marching-cubes based mesh from the NeRF or SDF model. Supports OBJ and PLY format.")
 	parser.add_argument("--marching_cubes_res", default=512, type=int, help="Sets the resolution for the marching cubes grid.")
@@ -84,7 +87,8 @@ if __name__ == "__main__":
 	os.makedirs(os.path.join(args.output_path,"mesh"), exist_ok=True)
 	
 	time_name = time.strftime("%m_%d_%H_%M", time.localtime())
-	writer = SummaryWriter(log_dir=os.path.join('output',  args.name, 'logs', time_name))
+	# writer = SummaryWriter(log_dir=os.path.join('output',  args.name, 'logs', time_name))
+	writer = SummaryWriter(log_dir=os.path.join(args.output_path,  args.name, 'logs', time_name))
 
 	mode = ngp.TestbedMode.Nerf 
 	configs_dir = os.path.join(ROOT_DIR, "configs", "nerf")
@@ -205,6 +209,12 @@ if __name__ == "__main__":
 		
 		tqdm_last_update = 0
 		if n_steps > 0:
+			if(args.optimize_exposure):
+				testbed.nerf.training.optimize_exposure = True
+				print("optimize_exposure:", testbed.nerf.training.optimize_exposure)
+			if args.optimize_extrinsics:
+				testbed.nerf.training.optimize_extrinsics = True
+				print("optimize_extrinsics:", testbed.nerf.training.optimize_extrinsics)
 			if args.depth_supervision_lambda>0.0:
 				testbed.nerf.training.depth_supervision_lambda=args.depth_supervision_lambda
 			print("depth_supervision_lambda:", testbed.nerf.training.depth_supervision_lambda)
@@ -240,8 +250,9 @@ if __name__ == "__main__":
 						writer.add_scalar('loss/ek_loss', testbed.ek_loss, testbed.training_step)
 						writer.add_scalar('loss/mask_loss', testbed.mask_loss, testbed.training_step)
 			testbed.save_snapshot(save_snapshot, False)
-			# res = args.marching_cubes_res or 256
-			# testbed.compute_and_save_marching_cubes_mesh(save_mesh_path, [res, res, res])
+			res = args.marching_cubes_res or 256
+			print("res:",res)
+			testbed.compute_and_save_marching_cubes_mesh(save_mesh_path, [res, res, res])
 			
 
 			# log_path = os.path.join(args.output_path, f"eval_log.txt")
