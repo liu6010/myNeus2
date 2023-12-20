@@ -24,7 +24,7 @@ teaser_scripts/
 *.ply
 *.obj
 *.pkl
-
+*.zip
 scripts.sh
 CMakeFiles
 

@@ -121,7 +121,8 @@ case $1 in
         python scripts/run_color_by_path.py \
             --screenshot_transforms /home/lhw/Gradute/RenderAndRecon/NeuS2/data/person2/expirement/1102/transforms_neus2_depth00_cam.json
     ;;
-    "2-0"):
+    "2-0")
+        # ./build/testbed --scene $data_path
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")

@@ -919,8 +919,16 @@ void Testbed::imgui() {
 
 			ImGui::Text("%dx%dx%d", res3d.x(), res3d.y(), res3d.z());
 			if (obj_filename_buf[0] == '\0') {
+				std::string root_path = "";
+
+				if (ends_with(m_data_path.str(), ".json")) {
+					root_path = (m_data_path.parent_path() / std::string("neus2_mesh.ply")).str();
+				}
+				else{
+					root_path = (m_data_path / std::string("neus2_mesh.ply")).str();
+				}
 				// snprintf(obj_filename_buf, sizeof(obj_filename_buf), "%s", get_filename_in_data_path_with_suffix(m_data_path, m_network_config_path, ".obj").c_str());
-				snprintf(obj_filename_buf, sizeof(obj_filename_buf), "%s", "neus2_mesh.ply");
+				snprintf(obj_filename_buf, sizeof(obj_filename_buf), "%s", root_path.c_str());
 			}
 			float thresh_range = (m_testbed_mode == ETestbedMode::Sdf) ? 0.5f : 10.f;
 			ImGui::SliderFloat("MC density threshold",&m_mesh.thresh, -thresh_range, thresh_range);
