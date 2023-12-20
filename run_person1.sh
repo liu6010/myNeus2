@@ -16,7 +16,7 @@ height=3840
 RootPath=/home/fhy/workspace/lhw/NeuS2/
 conda activate neus2
 
-n_steps=200000
+n_steps=75000
 date=1216
 case $1 in
     "0"):
@@ -141,13 +141,14 @@ case $1 in
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")
-        out_name_new=${out_name}_false
+        out_name_new=${out_name}_1.0_75k
         echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
             --name ${out_name_new} \
             --n_steps $n_steps \
-            --marching_cubes_res 800
+            --marching_cubes_res 800 \
+            --depth_supervision_lambda 1.0
     ;;
     "sh")
         for i in $(seq 0.2 0.2 1)

@@ -88,7 +88,7 @@ if __name__ == "__main__":
 	
 	time_name = time.strftime("%m_%d_%H_%M", time.localtime())
 	# writer = SummaryWriter(log_dir=os.path.join('output',  args.name, 'logs', time_name))
-	writer = SummaryWriter(log_dir=os.path.join(args.output_path,  args.name, 'logs', time_name))
+	writer = SummaryWriter(log_dir=os.path.join(args.output_path,  'logs', time_name))
 
 	mode = ngp.TestbedMode.Nerf 
 	configs_dir = os.path.join(ROOT_DIR, "configs", "nerf")

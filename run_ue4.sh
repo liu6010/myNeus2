@@ -16,7 +16,7 @@ height=3840
 RootPath=/home/fhy/workspace/lhw/NeuS2/
 conda activate neus2
 
-n_steps=20000
+n_steps=200000
 date=1215
 case $1 in
     "0"):
@@ -141,34 +141,26 @@ case $1 in
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")
-        mkdir -p $data_path/expirement/$date
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name $out_name --save_mesh \
-        #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        #     --marching_cubes_res 800 \
-        #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack
-
+        n_steps=75000
         out_name=${out_name}_0.8
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name ${out_name}_0.8 \
-        #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack \
-        #     --depth_supervision_lambda 0.8
-
+        out_name_new=${out_name}_75k
+        echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
-            --name $out_name --save_mesh \
-            --load_snapshot $RootPath/$data_path/output/$out_name/checkpoints/$n_steps.msgpack \
-            --save_mesh_path $RootPath/$data_path/output/$out_name/mesh/neus2_raw.ply \
-            --marching_cubes_res 800 
-
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name $out_name --save_mesh \
-        #     --load_snapshot $RootPath/$data_path/output/$out_name/checkpoints/$n_steps.msgpack \
-        #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        #     --marching_cubes_res 800 
+            --name ${out_name_new} \
+            --n_steps $n_steps \
+            --marching_cubes_res 800
+            # --optimize_exposure
+    ;;
+    "2-2")
+        out_name_new=${out_name}_20w
+        echo $out_name_new
+        python ./scripts/run_ModelMesh.py \
+            --scene $data_path/transforms.json \
+            --name ${out_name_new} \
+            --n_steps $n_steps \
+            --marching_cubes_res 800 \
+            --optimize_exposure
     ;;
     "sh")
         for i in $(seq 0.2 0.2 1)
@@ -179,6 +171,7 @@ case $1 in
                 --scene $data_path/transforms.json \
                 --name ${out_name_new} \
                 --n_steps $n_steps \
+                --optimize_exposure \
                 --depth_supervision_lambda $i
         done
 
