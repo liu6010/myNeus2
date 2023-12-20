@@ -163,9 +163,20 @@ case $1 in
                 --marching_cubes_res 800 \
                 --depth_supervision_lambda $i
         done
-
-        
-
+    ;;
+    "3-1"):
+        conda activate 3dRecons
+        cd $data_path
+        rm -rf $texture_path/texture_data/*
+        rm -rf $texture_path/temp_mask/*
+        python ../../scripts/neus2_2_mvstex.py \
+            --root_path $data_path \
+            --width $width \
+            --height $height \
+            --neus_mesh_path ./expirement/1106/ \
+            --neus_mesh_name $neus2_mesh_name \
+            --flag 0
+        conda deactivate
     ;;
 
 esac
