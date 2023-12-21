@@ -127,8 +127,8 @@ if __name__ == "__main__":
 			file_path = f["file_path"]
 			file_name = file_path[file_path.rfind('/')+1:]
 			file_idx = file_name[0:file_name.rfind('.')]
-			if int(file_idx) <=38:
-				continue
+			# if int(file_idx) >38:
+			# 	continue
 
 
 			# testbed.reset_camera()

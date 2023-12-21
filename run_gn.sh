@@ -6,7 +6,8 @@ texture_path=$data_path/texture/
 rgba_path=$data_path/rgba
 neus2_mesh_name=neus2_mesh_depth00_1106.ply
 # render_dir=gaussian_render1107
-render_dir=gaussian_render_1108
+render_dir=gaussian_render_1221
+render_file=render_1221
 
 image_num=39
 width=2160
@@ -17,19 +18,19 @@ out_name=person_gn
 n_steps=10000
 date=1217
 case $1 in
-    "0"):
+    "0")
         cd $RootPath
         python ./scripts/mask2rgba.py \
             --color_path /home/lhw/Gradute/3Dphoto/scan_obj_e2/data/neus2Data/color/ \
             --mask_path /home/lhw/Gradute/3Dphoto/scan_obj_e2/data/neus2Data/mask \
             --output_path /home/lhw/Gradute/3Dphoto/scan_obj_e2/data/neus2Data/rgba/
     ;;
-    "1-0"):
+    "1-0")
         python ./scripts/neus2_render_path.py \
             --transforms $data_path/transforms.json \
             --out_transforms $data_path/transforms_render.json
     ;;
-    "1-1"):
+    "1-1")
         cd $data_path
         python ../../scripts/xml2nerf_multi_stereo.py \
             --images rgba/%04d.png \
@@ -43,7 +44,7 @@ case $1 in
             --h $height \
             --out $RootPath/$data_path/transforms.json
     ;;
-    "1-1-2"):
+    "1-1-2")
         data_path=/home/lhw/Gradute/RenderAndRecon/NeuS2/data/person_gn2/
         cd $data_path
         python ../../scripts/xml2gaussian_multi_keepcolmap.py \
@@ -57,7 +58,7 @@ case $1 in
             --h $height \
             --out $data_path/gaussian/transforms.json
     ;;
-    "1-2"):
+    "1-2")
         conda activate 3dRecons
         cd $data_path
         rm -rf $texture_path/texture_data/*
@@ -178,6 +179,33 @@ case $1 in
             --neus_mesh_name $neus2_mesh_name \
             --flag 0
         conda deactivate
+    ;;
+    "4-1")
+        # python scripts/neus2_render_path_gn.py
+        mkdir -p ./$data_path/render/$render_file/color/
+        # python ./scripts/transformsInterpolate.py \
+        #     --transforms_path ${data_path}/transforms.json \
+        #     --out_transforms_path ${data_path}/render/transforms_render.json
+        python ./scripts/render_video_by_path.py \
+            --scene ${data_path}/transforms.json --mode nerf \
+            --load_snapshot $data_path/output/person_gn_false_75k_new/checkpoints/75000.msgpack \
+            --width 2160 --height 3840 --render_mode shade \
+            --screenshot_transforms ${data_path}/render/transforms_render.json \
+            --screenshot_dir ./$data_path/render/$render_file/color/
+            # --screenshot_dir ./$data_path/render/color_temp/
+
+    ;;
+    "4-2")
+        out_path=${data_path}/gaussian/gaussian_$render_file
+        mkdir -p $out_path/color
+        cp ${data_path}/render/$render_file/transforms_render.json $out_path/transforms_render.json
+        python ./scripts/transforms2gaussian.py \
+            --transforms ${data_path}/render/$render_file/transforms_render.json \
+            --gaussian $out_path/gaussian_$render_file.json
+        cp ${data_path}/transforms.json $out_path ${data_path}/transforms.json
+        python ./scripts/exportMeshToPcl.py \
+            --mesh_path $data_path/output/person_gn_false_75k_new/mesh/75000.ply \
+            --out_pcl_path $out_path/input.ply
     ;;
 
 esac
