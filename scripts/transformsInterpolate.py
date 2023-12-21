@@ -80,14 +80,16 @@ def interpolate_orientation(start_orientation, end_orientation, degrees = False)
     interp_rots = slerp(times)
 
     return interp_rots
-def interpolate_orientation_matrix(start_orientation, end_orientation):
+def interpolate_orientation_matrix(start_orientation, end_orientation, num_points=1):
 
     key_rots = Rotation.from_matrix([start_orientation, end_orientation])
 
-    key_times = [0, 2]
+    key_times = [0, num_points+1]
+    # key_times = [0, 2]
     # print(key_rots.as_euler('xyz', degrees=True))
     slerp = Slerp(key_times, key_rots)
-    times = [1]
+    times = list(range(1, num_points+1,1))
+    # print("times:", times)
     interp_rots = slerp(times)
 
     return interp_rots.as_matrix()
@@ -131,23 +133,6 @@ def create_rotation_matrix(axis, angle_degrees):
 
     return rotation_matrix
 
-def func():
-    start_pos = np.array([0, 0, 0]).reshape(3,1)
-    end_pos = np.array([10, 10, 10]).reshape(3,1)
-    num_points = 1
-
-    interpolated_positions = interpolate_position(start_pos, end_pos, num_points)
-    print(interpolated_positions)
-
-
-    start_orientation = np.array([0, 0, 0])
-    # end_orientation = np.array([90, 90, 90])
-    end_orientation = np.array([45, 45, 45])
-    # end_orientation = np.array([np.pi/4, np.pi/4, np.pi/4])
-    degrees = True
-
-    interpolated_orientations = interpolate_orientation(start_orientation, end_orientation,degrees)
-    print(interpolated_orientations.as_euler('xyz', degrees=True))
 
 
 if __name__ == "__main__":
@@ -176,8 +161,7 @@ if __name__ == "__main__":
     # out_transform_json["frames"].clear()
     cnt = -1
     cam_id = 2
-    startIdx = cam_id*STEP
-    endIdx = (cam_id+1)*STEP
+    '''
     for idx in range(num_len):
         frame = transform_json["frames"][idx]
         file_path = frame["file_path"]
@@ -268,44 +252,90 @@ if __name__ == "__main__":
                 frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
                 
                 out_transform_json["frames"].append(frame_cp)
-    for frame in transform_json["frames"]:
-        file_path = frame["file_path"]
-        file_name = file_path[file_path.rfind('/')+1:]
-        file_idx = file_name[0:file_name.rfind('.')]
-        cur_idx = int(file_idx)
-        if(cur_idx <startIdx or cur_idx >= endIdx):
-            continue
-        cnt += 1
-        
-        next_idx = (cur_idx+1) % STEP + startIdx
-        cur_matrix_c2w = np.matrix(frame["transform_matrix"])
-        next_martrix_c2w = map_transform_json[next_idx]
+    '''
+    for cam_id in range(3):
+        startIdx = cam_id*STEP
+        endIdx = (cam_id+1)*STEP
+        for frame in transform_json["frames"]:
+            file_path = frame["file_path"]
+            file_name = file_path[file_path.rfind('/')+1:]
+            file_idx = file_name[0:file_name.rfind('.')]
+            cur_idx = int(file_idx)
+            if(cur_idx <startIdx or cur_idx >= endIdx-1):
+                continue
+            cnt += 1
+            
+            next_idx = (cur_idx+1) % STEP + startIdx
+            cur_matrix_c2w = np.matrix(frame["transform_matrix"])
+            next_martrix_c2w = map_transform_json[next_idx]
 
-        cur_nerf_w2c = np.linalg.inv(cur_matrix_c2w)
-        next_nerf_w2c = np.linalg.inv(next_martrix_c2w)
+            cur_nerf_w2c = np.linalg.inv(cur_matrix_c2w)
+            next_nerf_w2c = np.linalg.inv(next_martrix_c2w)
 
-        cur_nerf_w2cR = cur_nerf_w2c[:3,:3]
-        next_nerf_w2cR = next_nerf_w2c[:3,:3]
+            cur_nerf_w2cR = cur_nerf_w2c[:3,:3]
+            next_nerf_w2cR = next_nerf_w2c[:3,:3]
 
-        cur_nerf_w2cT = cur_nerf_w2c[:3,3]
-        next_nerf_w2cT = next_nerf_w2c[:3,3]
+            cur_nerf_w2cT = cur_nerf_w2c[:3,3]
+            next_nerf_w2cT = next_nerf_w2c[:3,3]
 
-        interRot = interpolate_orientation_matrix(cur_nerf_w2cR, next_nerf_w2cR)
-        interTran = interpolate_position(cur_nerf_w2cT, next_nerf_w2cT)
+            interRot = interpolate_orientation_matrix(cur_nerf_w2cR, next_nerf_w2cR)
+            interTran = interpolate_position(cur_nerf_w2cT, next_nerf_w2cT)
 
-        # print(interRot.shape)
-        # print(interTran.shape)
+            # print(interRot.shape)
+            # print(interTran.shape)
 
-        inter_w2cT = np.append(interRot[0], interTran[0], axis=1)
-        inter_w2cT = np.append(inter_w2cT, [[0., 0., 0., 1.0]], axis=0)
+            inter_w2cT = np.append(interRot[0], interTran[0], axis=1)
+            inter_w2cT = np.append(inter_w2cT, [[0., 0., 0., 1.0]], axis=0)
 
-        inter_c2wT = np.linalg.inv(inter_w2cT)
+            inter_c2wT = np.linalg.inv(inter_w2cT)
 
-        frame_cpy = copy.deepcopy(frame)
-        frame_cpy["transform_matrix"] = inter_c2wT.tolist()
-        frame_cpy["file_path"] = "rgba/%04d.png"%(num_len+cnt)
+            frame_cpy = copy.deepcopy(frame)
+            frame_cpy["transform_matrix"] = inter_c2wT.tolist()
+            frame_cpy["file_path"] = "rgba/%04d.png"%(num_len+cnt)
 
-        out_transform_json["frames"].append(frame_cpy)
+            out_transform_json["frames"].append(frame_cpy)
+    for cam_id in range(2):
+        startIdx = cam_id*STEP
+        endIdx = (cam_id+1)*STEP
+        for frame in transform_json["frames"]:
+            file_path = frame["file_path"]
+            file_name = file_path[file_path.rfind('/')+1:]
+            file_idx = file_name[0:file_name.rfind('.')]
+            cur_idx = int(file_idx)
+            if(cur_idx <startIdx or cur_idx >= endIdx):
+                continue
+            
+            
+            next_idx = (cur_idx+1) % STEP + endIdx
+            cur_matrix_c2w = np.matrix(frame["transform_matrix"])
+            next_martrix_c2w = map_transform_json[next_idx]
+
+            cur_nerf_w2c = np.linalg.inv(cur_matrix_c2w)
+            next_nerf_w2c = np.linalg.inv(next_martrix_c2w)
+
+            cur_nerf_w2cR = cur_nerf_w2c[:3,:3]
+            next_nerf_w2cR = next_nerf_w2c[:3,:3]
+
+            cur_nerf_w2cT = cur_nerf_w2c[:3,3]
+            next_nerf_w2cT = next_nerf_w2c[:3,3]
+
+            times = 1
+            interRot = interpolate_orientation_matrix(cur_nerf_w2cR, next_nerf_w2cR, times)
+            interTran = interpolate_position(cur_nerf_w2cT, next_nerf_w2cT, times)
+
+            # print(interRot.shape)
+            # print(interTran.shape)
+            for ii_idx in range(times):
+                inter_w2cT = np.append(interRot[ii_idx], interTran[ii_idx], axis=1)
+                inter_w2cT = np.append(inter_w2cT, [[0., 0., 0., 1.0]], axis=0)
+
+                inter_c2wT = np.linalg.inv(inter_w2cT)
+                cnt += 1
+                frame_cpy = copy.deepcopy(frame)
+                frame_cpy["transform_matrix"] = inter_c2wT.tolist()
+                frame_cpy["file_path"] = "rgba/%04d.png"%(num_len+cnt)
+
+                out_transform_json["frames"].append(frame_cpy)
 
     print(f"writing {out_transforms_path}")
     with open(out_transforms_path, "w") as outfile:
