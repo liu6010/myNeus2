@@ -87,7 +87,7 @@ if __name__ == "__main__":
 		f["transform_matrix"] = ngp_c2w
 		file_path = f["file_path"]
 		file_name = file_path[file_path.rfind('/')+1:]
-		f["file_path"] = "./"+file_name
+		f["file_path"] = "./rgba/"+file_name
 
 	for f in transforms["frames"]:
 		f["transform_matrix"] = f["transform_matrix"].tolist()

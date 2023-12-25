@@ -1,14 +1,20 @@
 #!/bin/bash
 source /home/fhy/anaconda3/etc/profile.d/conda.sh
+gaussian_code_path=/home/fhy/workspace/lhw/gaussian-splatting-zy
+
 data_path="./data/person2"
 param_path=$data_path/xml/
 texture_path=$data_path/texture/
 rgba_path=$data_path/rgba
 neus2_mesh_name=neus2_mesh_depth00_1106.ply
-# render_dir=gaussian_render1107
-render_dir=gaussian_render_1108
 
+render_file=render_1224_test
 out_name=person2
+
+gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
+
+out_name_new=${out_name}_75k_new
+
 
 image_num=39
 width=2160
@@ -193,6 +199,66 @@ case $1 in
         
 
     ;;
+    "4-1")
+        mkdir -p ./$data_path/render/$render_file/color_neus2/
+        python ./scripts/transformsInterpolate.py \
+            --transforms_path ${data_path}/transforms.json --data_name $out_name \
+            --out_transforms_path ${data_path}/render/$render_file/transforms_render.json
+        python ./scripts/render_video_by_path.py \
+            --scene ${data_path}/transforms.json --mode nerf \
+            --load_snapshot $data_path/output/$out_name_new/checkpoints/75000.msgpack \
+            --width $width --height $height --render_mode shade \
+            --screenshot_transforms ${data_path}/render/$render_file/transforms_render.json \
+            --screenshot_dir ./$data_path/render/$render_file/color_neus2/
+            # --screenshot_dir ./$data_path/render/color_temp/
+
+    ;;
+    "4-2")
+        
+        # mkdir -p $gaussian_out_path/color
+        mkdir -p $gaussian_out_path/bk
+
+        # cp ${data_path}/render/transforms_render.json $gaussian_out_path/bk
+        # cp ${data_path}/transforms.json ${gaussian_out_path}/bk
+        cp -r ${data_path}/rgba $gaussian_out_path
+
+        python ./scripts/transforms2gaussian.py \
+            --transforms ${data_path}/transforms.json \
+            --gaussian $gaussian_out_path/transforms.json 
+
+        python ./scripts/transforms2gaussian.py \
+            --transforms ${data_path}/render/$render_file/transforms_render.json \
+            --gaussian $gaussian_out_path/gaussian_$render_file.json
+
+        python ./scripts/exportMeshToPcl.py \
+            --mesh_path $data_path/output/$out_name_new/mesh/75000.ply \
+            --out_pcl_path $gaussian_out_path/points3d.ply
+    ;;
+    "4-3")
+        conda activate gaussian_splatting
+
+        epoch=20000
+
+        python $gaussian_code_path/train.py -s $gaussian_out_path -r 1 \
+                 --iterations $epoch --save_iterations $epoch \
+                 -m $gaussian_out_path/output --data_device cpu  
+        
+        python $gaussian_code_path/render.py \
+            -s $gaussian_out_path \
+            -m $gaussian_out_path/output
+
+    ;;
+    "4-4")
+        conda activate gaussian_splatting
+        python $gaussian_code_path/render_by_path.py --quiet \
+            --track_path $gaussian_out_path/gaussian_$render_file.json \
+            --save_path  $gaussian_out_path/render \
+            -s $gaussian_out_path \
+            -m $gaussian_out_path/output \
+            --width $width \
+            --height $height
+    ;;
+
 
 
 esac

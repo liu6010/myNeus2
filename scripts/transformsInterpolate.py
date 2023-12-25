@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument("--transforms_path", default="", help="run ffmpeg first to convert a provided video file into "
                                                        "a set of images. uses the video_fps parameter also")
     parser.add_argument("--out_transforms_path", default="")
+    parser.add_argument("--data_name", default="person_gn")
 
     arguments = parser.parse_args()
     return arguments
@@ -161,98 +162,98 @@ if __name__ == "__main__":
     # out_transform_json["frames"].clear()
     cnt = -1
     cam_id = 2
-    '''
-    for idx in range(num_len):
-        frame = transform_json["frames"][idx]
-        file_path = frame["file_path"]
-        file_name = file_path[file_path.rfind('/')+1:]
-        file_idx = file_name[0:file_name.rfind('.')]
+    if args.data_name == "person_gn":
+        for idx in range(num_len):
+            frame = transform_json["frames"][idx]
+            file_path = frame["file_path"]
+            file_name = file_path[file_path.rfind('/')+1:]
+            file_idx = file_name[0:file_name.rfind('.')]
 
-        nerf_c2w = np.array(frame["transform_matrix"], dtype=np.float32)
-        nerf_w2c = np.linalg.inv(nerf_c2w)
-        virtual_RT_44 = np.eye(4)
-        if(file_idx == "0000"):
-            print(file_idx)
-            cnt+=1
-            virtual_R = np.eye(3)
-            virtual_t = np.array([0, -1, 0]).reshape(3,1)
-            R_temp = copy.deepcopy(nerf_w2c[:3,:3]).reshape(3,3)
-            virtual_R = np.linalg.inv(R_temp)
-            virtual_R = np.dot(virtual_R, create_rotation_matrix('x', -37))
-            virtual_R = np.dot(virtual_R, create_rotation_matrix('y', -8))
-            virtual_R = np.dot(virtual_R, create_rotation_matrix('z', -45))
+            nerf_c2w = np.array(frame["transform_matrix"], dtype=np.float32)
+            nerf_w2c = np.linalg.inv(nerf_c2w)
+            virtual_RT_44 = np.eye(4)
+            if(file_idx == "0000"):
+                print(file_idx)
+                cnt+=1
+                virtual_R = np.eye(3)
+                virtual_t = np.array([0, -1, 0]).reshape(3,1)
+                R_temp = copy.deepcopy(nerf_w2c[:3,:3]).reshape(3,3)
+                virtual_R = np.linalg.inv(R_temp)
+                virtual_R = np.dot(virtual_R, create_rotation_matrix('x', -37))
+                virtual_R = np.dot(virtual_R, create_rotation_matrix('y', -8))
+                virtual_R = np.dot(virtual_R, create_rotation_matrix('z', -45))
 
-            virtual_RT_44[:3, :3] = virtual_R
-            virtual_RT_44[:3, 3] = virtual_t[:3,0]
+                virtual_RT_44[:3, :3] = virtual_R
+                virtual_RT_44[:3, 3] = virtual_t[:3,0]
 
-            nerf_virtual_w2c = np.dot(virtual_RT_44, nerf_w2c)
-            nerf_virtual_c2w = np.linalg.inv(nerf_virtual_w2c)
+                nerf_virtual_w2c = np.dot(virtual_RT_44, nerf_w2c)
+                nerf_virtual_c2w = np.linalg.inv(nerf_virtual_w2c)
 
-            frame_cp = copy.deepcopy(frame)
-            frame_cp["transform_matrix"] = nerf_virtual_c2w.tolist()
-            frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
-            out_transform_json["frames"].append(frame_cp)
+                frame_cp = copy.deepcopy(frame)
+                frame_cp["transform_matrix"] = nerf_virtual_c2w.tolist()
+                frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
+                out_transform_json["frames"].append(frame_cp)
+            
+            if(file_idx == "0038"):
+                for i in range(5):
+                    print(file_idx)
+                    cnt+=1
+                    virtual_R = np.eye(3)
+                    # virtual_t = np.array([0.2*i, 0.0, 0.0]).reshape(3,1)
+                    virtual_t = np.array([-0.2*2, 0.3*2, 0]).reshape(3,1)
+
+                    R_temp = copy.deepcopy(nerf_c2w[:3,:3]).reshape(3,3)
+                    # virtual_R = np.linalg.inv(R_temp)
+                    # virtual_R = np.dot(virtual_R, create_rotation_matrix('x', -15*i))
+                    virtual_R = np.dot(create_rotation_matrix('x', 10+i*4), virtual_R )
+                    virtual_R = np.dot(create_rotation_matrix('y', 10+i*4), virtual_R )
+                    virtual_R = np.dot(create_rotation_matrix('z', 0), virtual_R )
+                    # virtual_R = np.dot(virtual_R, create_rotation_matrix('y', i*10))
+                    # virtual_R = np.dot(virtual_R, create_rotation_matrix('z', 315))
+                    virtual_RT_44[:3, :3] = virtual_R
+                    virtual_RT_44[:3, 3] = virtual_t[:3,0]
+                    print(nerf_c2w[:3, 3])
+
+                    nerf_virtual_c2w = np.dot(virtual_RT_44, nerf_c2w)
+                    # print("nerf_virtual_w2c:", nerf_virtual_w2c)
+                    # nerf_virtual_c2w = np.linalg.inv(nerf_virtual_w2c)
+                        # print("nerf_virtual_c2w:",nerf_virtual_c2w)
+
+                    frame_cp = copy.deepcopy(frame)
+                    frame_cp["transform_matrix"] = nerf_virtual_c2w.tolist()
+                    frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
+                    
+                    out_transform_json["frames"].append(frame_cp)
+                for i in range(5):
+                    print(file_idx)
+                    cnt+=1
+                    virtual_R = np.eye(3)
+                    # virtual_t = np.array([0.2*i, 0.0, 0.0]).reshape(3,1)
+                    virtual_t = np.array([-0.2*2 +0.2, 0.3*2+0.2, 0]).reshape(3,1)
+
+                    R_temp = copy.deepcopy(nerf_c2w[:3,:3]).reshape(3,3)
+                    # virtual_R = np.linalg.inv(R_temp)
+                    # virtual_R = np.dot(virtual_R, create_rotation_matrix('x', -15*i))
+                    virtual_R = np.dot(create_rotation_matrix('x', 15+4*i), virtual_R )
+                    virtual_R = np.dot(create_rotation_matrix('y', 15+4*i), virtual_R )
+                    virtual_R = np.dot(create_rotation_matrix('z', 10), virtual_R )
+                    # virtual_R = np.dot(virtual_R, create_rotation_matrix('y', i*10))
+                    # virtual_R = np.dot(virtual_R, create_rotation_matrix('z', 315))
+                    virtual_RT_44[:3, :3] = virtual_R
+                    virtual_RT_44[:3, 3] = virtual_t[:3,0]
+                    print(nerf_c2w[:3, 3])
+
+                    nerf_virtual_c2w = np.dot(virtual_RT_44, nerf_c2w)
+                    # print("nerf_virtual_w2c:", nerf_virtual_w2c)
+                    # nerf_virtual_c2w = np.linalg.inv(nerf_virtual_w2c)
+                        # print("nerf_virtual_c2w:",nerf_virtual_c2w)
+
+                    frame_cp = copy.deepcopy(frame)
+                    frame_cp["transform_matrix"] = nerf_virtual_c2w.tolist()
+                    frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
+                    
+                    out_transform_json["frames"].append(frame_cp)
         
-        if(file_idx == "0038"):
-            for i in range(5):
-                print(file_idx)
-                cnt+=1
-                virtual_R = np.eye(3)
-                # virtual_t = np.array([0.2*i, 0.0, 0.0]).reshape(3,1)
-                virtual_t = np.array([-0.2*2, 0.3*2, 0]).reshape(3,1)
-
-                R_temp = copy.deepcopy(nerf_c2w[:3,:3]).reshape(3,3)
-                # virtual_R = np.linalg.inv(R_temp)
-                # virtual_R = np.dot(virtual_R, create_rotation_matrix('x', -15*i))
-                virtual_R = np.dot(create_rotation_matrix('x', 10+i*4), virtual_R )
-                virtual_R = np.dot(create_rotation_matrix('y', 10+i*4), virtual_R )
-                virtual_R = np.dot(create_rotation_matrix('z', 0), virtual_R )
-                # virtual_R = np.dot(virtual_R, create_rotation_matrix('y', i*10))
-                # virtual_R = np.dot(virtual_R, create_rotation_matrix('z', 315))
-                virtual_RT_44[:3, :3] = virtual_R
-                virtual_RT_44[:3, 3] = virtual_t[:3,0]
-                print(nerf_c2w[:3, 3])
-
-                nerf_virtual_c2w = np.dot(virtual_RT_44, nerf_c2w)
-                # print("nerf_virtual_w2c:", nerf_virtual_w2c)
-                # nerf_virtual_c2w = np.linalg.inv(nerf_virtual_w2c)
-                    # print("nerf_virtual_c2w:",nerf_virtual_c2w)
-
-                frame_cp = copy.deepcopy(frame)
-                frame_cp["transform_matrix"] = nerf_virtual_c2w.tolist()
-                frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
-                
-                out_transform_json["frames"].append(frame_cp)
-            for i in range(5):
-                print(file_idx)
-                cnt+=1
-                virtual_R = np.eye(3)
-                # virtual_t = np.array([0.2*i, 0.0, 0.0]).reshape(3,1)
-                virtual_t = np.array([-0.2*2 +0.2, 0.3*2+0.2, 0]).reshape(3,1)
-
-                R_temp = copy.deepcopy(nerf_c2w[:3,:3]).reshape(3,3)
-                # virtual_R = np.linalg.inv(R_temp)
-                # virtual_R = np.dot(virtual_R, create_rotation_matrix('x', -15*i))
-                virtual_R = np.dot(create_rotation_matrix('x', 15+4*i), virtual_R )
-                virtual_R = np.dot(create_rotation_matrix('y', 15+4*i), virtual_R )
-                virtual_R = np.dot(create_rotation_matrix('z', 10), virtual_R )
-                # virtual_R = np.dot(virtual_R, create_rotation_matrix('y', i*10))
-                # virtual_R = np.dot(virtual_R, create_rotation_matrix('z', 315))
-                virtual_RT_44[:3, :3] = virtual_R
-                virtual_RT_44[:3, 3] = virtual_t[:3,0]
-                print(nerf_c2w[:3, 3])
-
-                nerf_virtual_c2w = np.dot(virtual_RT_44, nerf_c2w)
-                # print("nerf_virtual_w2c:", nerf_virtual_w2c)
-                # nerf_virtual_c2w = np.linalg.inv(nerf_virtual_w2c)
-                    # print("nerf_virtual_c2w:",nerf_virtual_c2w)
-
-                frame_cp = copy.deepcopy(frame)
-                frame_cp["transform_matrix"] = nerf_virtual_c2w.tolist()
-                frame_cp["file_path"] = "rgba/%04d.png"%(num_len+cnt)
-                
-                out_transform_json["frames"].append(frame_cp)
-    '''
     for cam_id in range(3):
         startIdx = cam_id*STEP
         endIdx = (cam_id+1)*STEP
