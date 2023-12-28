@@ -8,7 +8,7 @@ texture_path=$data_path/texture/
 rgba_path=$data_path/rgba
 neus2_mesh_name=neus2_mesh_depth00_1106.ply
 
-render_file=render_1224_test
+render_file=render_1227_test
 out_name=person2
 
 gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
@@ -146,7 +146,8 @@ case $1 in
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")
-        out_name_new=${out_name}_false_low
+
+        out_name_new=${out_name}_75k_test
         echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
@@ -154,34 +155,24 @@ case $1 in
             --n_steps $n_steps \
             --optimize_exposure \
             --marching_cubes_res 800 
-        # mkdir -p $data_path/expirement/$date
-        # # python ./scripts/run_ModelMesh.py \
-        # #     --scene $data_path/transforms.json \
-        # #     --name $out_name --save_mesh \
-        # #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        # #     --marching_cubes_res 800 \
-        # #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack
+        
+        python ./scripts/render_video_by_path.py \
+            --scene ${data_path}/transforms.json --mode nerf \
+            --load_snapshot $data_path/output/$out_name_new/checkpoints/75000.msgpack \
+            --width $width --height $height --render_mode shade \
+            --screenshot_transforms ${data_path}/transforms.json \
+            --screenshot_dir ./$data_path/render/$render_file/color_neus2/
 
-        # out_name=${out_name}_0.8
-        # # python ./scripts/run_ModelMesh.py \
-        # #     --scene $data_path/transforms.json \
-        # #     --name ${out_name}_0.8 \
-        # #     --n_steps $n_steps --save_snapshot $RootPath/$data_path/neus2_$n_steps.msgpack \
-        # #     --depth_supervision_lambda 0.8
-
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name $out_name --save_mesh \
-        #     --load_snapshot $RootPath/$data_path/output/$out_name/checkpoints/$n_steps.msgpack \
-        #     --save_mesh_path $RootPath/$data_path/output/$out_name/mesh/neus2_raw.ply \
-        #     --marching_cubes_res 800 
-
-        # python ./scripts/run_ModelMesh.py \
-        #     --scene $data_path/transforms.json \
-        #     --name $out_name --save_mesh \
-        #     --load_snapshot $RootPath/$data_path/output/$out_name/checkpoints/$n_steps.msgpack \
-        #     --save_mesh_path $RootPath/$data_path/expirement/$date/neus2_raw.ply \
-        #     --marching_cubes_res 800 
+        # conda activate gaussian_splatting
+        # render_file=render_1224_test
+        # gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
+        # python $gaussian_code_path/render_by_path.py --quiet \
+        #     --track_path $gaussian_out_path/transforms.json \
+        #     --save_path  $gaussian_out_path/render_test \
+        #     -s $gaussian_out_path \
+        #     -m $gaussian_out_path/output \
+        #     --width $width \
+        #     --height $height
     ;;
     "sh")
         for i in $(seq 0.0 0.25 1)
@@ -239,13 +230,23 @@ case $1 in
 
         epoch=20000
 
-        python $gaussian_code_path/train.py -s $gaussian_out_path -r 1 \
-                 --iterations $epoch --save_iterations $epoch \
-                 -m $gaussian_out_path/output --data_device cpu  
+        # python $gaussian_code_path/train.py -s $gaussian_out_path -r 1 \
+        #          --iterations $epoch --save_iterations $epoch \
+        #          -m $gaussian_out_path/output --data_device cpu  
         
-        python $gaussian_code_path/render.py \
+        # python $gaussian_code_path/render.py \
+        #     -s $gaussian_out_path \
+        #     -m $gaussian_out_path/output
+
+        render_file=render_1224_test
+        gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
+        python $gaussian_code_path/render_by_path.py --quiet \
+            --track_path $gaussian_out_path/transforms.json \
+            --save_path  $gaussian_out_path/render_test \
             -s $gaussian_out_path \
-            -m $gaussian_out_path/output
+            -m $gaussian_out_path/output \
+            --width $width \
+            --height $height
 
     ;;
     "4-4")

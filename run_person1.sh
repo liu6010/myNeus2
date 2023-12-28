@@ -5,10 +5,15 @@ param_path=$data_path/xml/
 texture_path=$data_path/texture/
 rgba_path=$data_path/rgba
 neus2_mesh_name=neus2_mesh_depth00_1106.ply
-# render_dir=gaussian_render1107
-render_dir=gaussian_render_1108
+gaussian_code_path=/home/fhy/workspace/lhw/gaussian-splatting-zy
+
+render_file=render_1227_test
 
 out_name=person1
+out_name_new=${out_name}_false_75k_new
+
+render_file=render_1227_test
+gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
 
 image_num=39
 width=2160
@@ -16,8 +21,8 @@ height=3840
 RootPath=/home/fhy/workspace/lhw/NeuS2/
 conda activate neus2
 
-n_steps=75000
-date=1216
+n_steps=25000
+date=1217
 case $1 in
     "0"):
         cd $RootPath
@@ -141,14 +146,36 @@ case $1 in
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")
-        out_name_new=${out_name}_1.0_75k
+         out_name_new=${out_name}_25k_test
         echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
             --name ${out_name_new} \
             --n_steps $n_steps \
-            --marching_cubes_res 800 \
-            --depth_supervision_lambda 1.0
+            --marching_cubes_res 800 
+
+        python ./scripts/render_video_by_path.py \
+            --scene ${data_path}/transforms.json --mode nerf \
+            --load_snapshot $data_path/output/$out_name_new/checkpoints/$n_steps.msgpack \
+            --width $width --height $height --render_mode shade \
+            --screenshot_transforms ${data_path}/transforms.json \
+            --screenshot_dir ./$data_path/render/$render_file/color_neus2/
+
+        
+        
+        
+        conda activate gaussian_splatting
+        render_file=render_1224_test
+
+
+        gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
+        python $gaussian_code_path/render_by_path.py --quiet \
+            --track_path $gaussian_out_path/transforms.json \
+            --save_path  $gaussian_out_path/render_test \
+            -s $gaussian_out_path \
+            -m $gaussian_out_path/output \
+            --width $width \
+            --height $height
     ;;
     "sh")
         for i in $(seq 0.2 0.2 1)

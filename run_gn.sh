@@ -12,7 +12,7 @@ render_file=render_1224_test
 out_name=person_gn
 out_name_new=${out_name}_false_75k_new
 
-render_file=render_1224_test
+render_file=render_1227_test
 gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
 
 image_num=39
@@ -21,7 +21,7 @@ height=3840
 RootPath=/home/fhy/workspace/lhw/NeuS2/
 conda activate neus2
 
-n_steps=10000
+n_steps=25000
 date=1217
 case $1 in
     "0")
@@ -133,21 +133,31 @@ case $1 in
         ./build/testbed --scene $data_path/transforms.json
     ;;
     "2-1")
-        out_name_new=${out_name}_false_1w
+        out_name_new=${out_name}_25k_test
         echo $out_name_new
         python ./scripts/run_ModelMesh.py \
             --scene $data_path/transforms.json \
             --name ${out_name_new} \
             --n_steps $n_steps \
-            --marching_cubes_res 800
-        n_steps=5000
-        out_name_new=${out_name}_false_5k
-        echo $out_name_new
-        python ./scripts/run_ModelMesh.py \
-            --scene $data_path/transforms.json \
-            --name ${out_name_new} \
-            --n_steps $n_steps \
-            --marching_cubes_res 800
+            --marching_cubes_res 800 
+
+        python ./scripts/render_video_by_path.py \
+            --scene ${data_path}/transforms.json --mode nerf \
+            --load_snapshot $data_path/output/$out_name_new/checkpoints/$n_steps.msgpack \
+            --width $width --height $height --render_mode shade \
+            --screenshot_transforms ${data_path}/transforms.json \
+            --screenshot_dir ./$data_path/render/$render_file/color_neus2/
+        
+        # conda activate gaussian_splatting
+        # render_file=render_1224_test
+        # gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
+        # python $gaussian_code_path/render_by_path.py --quiet \
+        #     --track_path $gaussian_out_path/transforms.json \
+        #     --save_path  $gaussian_out_path/render_test \
+        #     -s $gaussian_out_path \
+        #     -m $gaussian_out_path/output \
+        #     --width $width \
+        #     --height $height
     ;;
     "2-2")
         out_name_new=${out_name}_0.0_75k
@@ -227,13 +237,21 @@ case $1 in
 
         epoch=20000
 
-        python $code_path/train.py -s $gaussian_out_path -r 1 \
-                 --iterations $epoch --save_iterations $epoch \
-                 -m $gaussian_out_path/output --data_device cpu  
-        
-        python $code_path/render.py \
+        # python $code_path/train.py -s $gaussian_out_path -r 1 \
+        #          --iterations $epoch --save_iterations $epoch \
+        #          -m $gaussian_out_path/output --data_device cpu  
+
+        python $gaussian_code_path/render_by_path.py --quiet \
+            --track_path $gaussian_out_path/transforms.json \
+            --save_path  $gaussian_out_path/render_test \
             -s $gaussian_out_path \
-            -m $gaussian_out_path/output
+            -m $gaussian_out_path/output \
+            --width $width \
+            --height $height
+        
+        # python $code_path/render.py \
+        #     -s $gaussian_out_path \
+        #     -m $gaussian_out_path/output
 
     ;;
     "4-4")
