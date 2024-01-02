@@ -7,7 +7,7 @@ param_path=$data_path/xml/
 texture_path=$data_path/texture/
 rgba_path=$data_path/rgba
 
-render_file=render_1227_test
+render_file=render_1229
 gaussian_out_path=${data_path}/gaussian/gaussian_$render_file
 
 
@@ -143,7 +143,7 @@ case $1 in
         #     --screenshot_transforms /home/lhw/Gradute/RenderAndRecon/NeuS2/data/person2/expirement/1102/transforms_neus2_depth00_cam.json
     ;;
     "2-0")
-        ./build/testbed --scene $data_path/transforms.json
+        ./build/testbed --scene $data_path/transforms.json --snapshot ${data_path}/transforms_25w.msgpack
     ;;
     "2-1")
         out_name_new=${out_name}_75k_test
@@ -199,13 +199,14 @@ case $1 in
 
     ;;
     "4-1")
+        
         mkdir -p ./$data_path/render/$render_file/color_neus2/
         python ./scripts/transformsInterpolate.py \
             --transforms_path ${data_path}/transforms.json --data_name $out_name \
             --out_transforms_path ${data_path}/render/$render_file/transforms_render.json
         python ./scripts/render_video_by_path.py \
             --scene ${data_path}/transforms.json --mode nerf \
-            --load_snapshot $data_path/output/$out_name_new/checkpoints/75000.msgpack \
+            --load_snapshot $data_path/output/transforms_25w_new.msgpack \
             --width $width --height $height --render_mode shade \
             --screenshot_transforms ${data_path}/render/$render_file/transforms_render.json \
             --screenshot_dir ./$data_path/render/$render_file/color_neus2/
@@ -220,6 +221,7 @@ case $1 in
         # cp ${data_path}/render/transforms_render.json $gaussian_out_path/bk
         # cp ${data_path}/transforms.json ${gaussian_out_path}/bk
         cp -r ${data_path}/rgba $gaussian_out_path
+        cp ${data_path}/render/$render_file/transforms_render.json $gaussian_out_path
 
         python ./scripts/transforms2gaussian.py \
             --transforms ${data_path}/transforms.json \
@@ -230,7 +232,7 @@ case $1 in
             --gaussian $gaussian_out_path/gaussian_$render_file.json
 
         python ./scripts/exportMeshToPcl.py \
-            --mesh_path $data_path/output/$out_name_new/mesh/75000.ply \
+            --mesh_path $data_path/output/neus2_mesh_28w_new.ply \
             --out_pcl_path $gaussian_out_path/points3d.ply
     ;;
     "4-3")
@@ -239,13 +241,13 @@ case $1 in
 
         epoch=20000
 
-        # python $code_path/train.py -s $gaussian_out_path -r 1 \
-        #          --iterations $epoch \
-        #          -m $gaussian_out_path/output --data_device cpu  
+        python $code_path/train.py -s $gaussian_out_path -r 1 \
+                 --iterations $epoch \
+                 -m $gaussian_out_path/output --data_device cpu  
         
-        # python $code_path/render.py \
-        #     -s $gaussian_out_path \
-        #     -m $gaussian_out_path/output
+        python $code_path/render.py \
+            -s $gaussian_out_path \
+            -m $gaussian_out_path/output
 
         python $gaussian_code_path/render_by_path.py --quiet \
             --track_path $gaussian_out_path/transforms.json \
